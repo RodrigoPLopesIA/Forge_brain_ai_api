@@ -2,6 +2,9 @@ package br.com.rodrigo.brainforge.controllers;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.UriBuilder;
+import org.springframework.web.util.UriBuilderFactory;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import br.com.rodrigo.brainforge.dtos.RequestExerciseDTO;
 import br.com.rodrigo.brainforge.dtos.ResponseExerciseDTO;
@@ -30,8 +33,10 @@ public class ExerciseController {
     @PostMapping
     public ResponseEntity<ResponseExerciseDTO> create(@RequestBody RequestExerciseDTO exercise) {
         ResponseExerciseDTO response = exerciseService.create(exercise);
-        
-        return ResponseEntity.ok(response);
+        var uri = UriComponentsBuilder.fromPath("/exercises/{id}")
+                .buildAndExpand(response.id())
+                .toUri();
+        return ResponseEntity.created(uri).body(response);
     }
 
     @GetMapping
