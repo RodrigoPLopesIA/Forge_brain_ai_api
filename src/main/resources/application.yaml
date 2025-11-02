@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: brainforge
+
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/brainforge
+    username: your_username
+    password: your_password
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 30000
+      max-lifetime: 1800000
+      connection-timeout: 30000
