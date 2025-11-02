@@ -2,6 +2,7 @@ package br.com.rodrigo.brainforge.services;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,5 +59,11 @@ public class ExerciseService {
         return exercises.stream()
                 .map(exercise -> exerciseMapper.toResponseDTO(exercise))
                 .collect(Collectors.toList());
+    }
+
+    public ResponseExerciseDTO findById(UUID exerciseId) {
+        Exercise exercise = exerciseRepository.findById(exerciseId)
+                .orElseThrow(() -> new RuntimeException("Exercise not found"));
+        return exerciseMapper.toResponseDTO(exercise);
     }
 }
