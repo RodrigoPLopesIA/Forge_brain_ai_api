@@ -9,6 +9,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import br.com.rodrigo.brainforge.enums.DifficultyEnum;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -52,7 +53,7 @@ public class Exercise {
     private DifficultyEnum difficulty;
 
 
-    @OneToMany(mappedBy = "exercise")
+    @OneToMany(mappedBy = "exercise", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Question> questions;
     
     @CreatedDate    

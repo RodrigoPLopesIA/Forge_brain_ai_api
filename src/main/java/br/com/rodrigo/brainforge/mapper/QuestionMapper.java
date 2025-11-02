@@ -13,7 +13,7 @@ import br.com.rodrigo.brainforge.entities.Question;
 public interface QuestionMapper {
     
     @Mapping(target = "title", source = "statement")
-    @Mapping(target = "options", expression = "java(aiResponse.getOptions() == null ? null : String.join(\"\\n\", aiResponse.getOptions()))")
+    @Mapping(target = "options", expression = "java(aiResponse.options() == null ? null : String.join(\"\\n\", aiResponse.options()))")
     @Mapping(target = "correctAnswer", source = "correctAnswer")
     @Mapping(target = "type", source = "type")
     @Mapping(target = "id", ignore = true)
@@ -21,6 +21,7 @@ public interface QuestionMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     Question toEntity(ResponseAIQuestionDTO aiResponse);
+    
 
     
 }

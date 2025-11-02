@@ -28,14 +28,11 @@ public class ExerciseController {
     @Autowired
     private ExerciseService exerciseService;
 
-    @Autowired
-    private AIQuestionService aiQuestionService;
 
     @PostMapping
-    public ResponseEntity<Object> create(@RequestBody RequestExerciseDTO exercise) {
-        // ResponseExerciseDTO response = exerciseService.create(exercise);
-         List<ResponseAIQuestionDTO> response = aiQuestionService.generateQuestionsMock(
-                            exercise.theme(), exercise.type(), exercise.difficulty());
+    public ResponseEntity<ResponseExerciseDTO> create(@RequestBody RequestExerciseDTO exercise) {
+        ResponseExerciseDTO response = exerciseService.create(exercise);
+        
         return ResponseEntity.ok(response);
     }
 
