@@ -5,6 +5,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.rodrigo.brainforge.dtos.RequestExerciseDTO;
 import br.com.rodrigo.brainforge.dtos.ResponseExerciseDTO;
+import br.com.rodrigo.brainforge.enums.QuestionType;
+import br.com.rodrigo.brainforge.services.AIQuestionService;
 import br.com.rodrigo.brainforge.services.ExerciseService;
 
 import java.util.List;
@@ -23,11 +25,15 @@ public class ExerciseController {
     
     @Autowired
     private ExerciseService exerciseService;
+
+    @Autowired
+    private AIQuestionService aiQuestionService;
     
     @PostMapping
-    public ResponseEntity<ResponseExerciseDTO> create(@RequestBody RequestExerciseDTO exercise) {
-        ResponseExerciseDTO response = exerciseService.create(exercise);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<Object> create(@RequestBody RequestExerciseDTO exercise) {
+        // ResponseExerciseDTO response = exerciseService.create(exercise);
+        Object questions = aiQuestionService.generateQuestionsMock(exercise.theme(), QuestionType.MULTIPLE_CHOICE.name(), exercise.difficulty());;
+        return ResponseEntity.ok(questions);
     }
 
     @GetMapping
