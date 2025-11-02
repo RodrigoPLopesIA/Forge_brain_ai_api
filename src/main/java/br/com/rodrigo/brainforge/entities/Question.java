@@ -28,11 +28,11 @@ public class Question {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String title;
 
-    @Column(columnDefinition = "JSONB")
+    @Column(name = "options", columnDefinition = "varchar[]")
     private List<String> options;
 
     @Column(nullable = false, columnDefinition = "TEXT")
-    private String correctAnswer; 
+    private String correctAnswer;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
@@ -42,7 +42,7 @@ public class Question {
     @JoinColumn(name = "exercise_id", nullable = false)
     private Exercise exercise;
 
-    @CreatedDate    
+    @CreatedDate
     @Column(nullable = false, updatable = false, name = "created_at")
     private Instant createdAt;
 
@@ -50,4 +50,3 @@ public class Question {
     @Column(nullable = false, name = "updated_at")
     private Instant updatedAt;
 }
-

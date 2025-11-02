@@ -19,7 +19,6 @@ import br.com.rodrigo.brainforge.repositories.ExerciseRepository;
 @Service
 public class ExerciseService {
 
-
     @Autowired
     private ExerciseRepository exerciseRepository;
 
@@ -32,31 +31,32 @@ public class ExerciseService {
     @Autowired
     private AIQuestionService aiQuestionService;
 
-        public ResponseExerciseDTO create(RequestExerciseDTO exercise) {
+    public ResponseExerciseDTO create(RequestExerciseDTO exercise) {
 
-            Exercise newExercise = exerciseMapper.toEntity(exercise);
+        Exercise newExercise = exerciseMapper.toEntity(exercise);
 
-            List<ResponseAIQuestionDTO> aiQuestions = aiQuestionService.generateQuestionsMock(
-                    exercise.theme(), exercise.type(), exercise.difficulty());
+        List<ResponseAIQuestionDTO> aiQuestions = aiQuestionService.generateQuestionsMock(
+                exercise.theme(), exercise.type(), exercise.difficulty());
 
-            // Mapper: converte a resposta da IA em entidades Question e liga cada Question ao Exercise
-            List<Question> questions = aiQuestions.stream()
-                    .map(questionMapper::toEntity)
-                    .collect(Collectors.toList());
-            
-            newExercise.setQuestions(questions);
+        List<Question> questions = aiQuestions.stream()
+                .map(questionMap -> {
+                    Question question = questionMapper.toEntity(questionMap);
+                    question.setExercise(newExercise);
+                    return question;
+                })
+                .collect(Collectors.toList());
 
-            // Persistir exercício (e, assumindo cascade apropriado em Exercise.questions, também persistirá as questions)
-            Exercise saved = exerciseRepository.save(newExercise);
+        newExercise.setQuestions(questions);
 
-            return exerciseMapper.toResponseDTO(saved);
-        }
+        Exercise saved = exerciseRepository.save(newExercise);
 
+        return exerciseMapper.toResponseDTO(saved);
+    }
 
     public List<ResponseExerciseDTO> index() {
         List<Exercise> exercises = exerciseRepository.findAll();
         return exercises.stream()
-                        .map(exercise -> exerciseMapper.toResponseDTO(exercise))
-                        .collect(Collectors.toList());
-    } 
+                .map(exercise -> exerciseMapper.toResponseDTO(exercise))
+                .collect(Collectors.toList());
+    }
 }
