@@ -36,7 +36,7 @@ public class ExerciseService {
 
         Exercise newExercise = exerciseMapper.toEntity(exercise);
 
-        List<ResponseAIQuestionDTO> aiQuestions = aiQuestionService.generateQuestionsMock(
+        List<ResponseAIQuestionDTO> aiQuestions = aiQuestionService.generateQuestions(
                 exercise.theme(), exercise.type(), exercise.difficulty());
 
         List<Question> questions = aiQuestions.stream()

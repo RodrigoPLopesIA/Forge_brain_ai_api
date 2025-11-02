@@ -11,8 +11,11 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import br.com.rodrigo.brainforge.dtos.ResponseAIQuestionDTO;
+import br.com.rodrigo.brainforge.enums.QuestionType;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class AIQuestionService {
 
     private final ChatClient chatClient;
@@ -22,11 +25,12 @@ public class AIQuestionService {
         this.chatClient = chatClientBuilder.build();
     }
 
-    public List<Map<String, Object>> generateQuestions(String theme, String type, String difficulty) {
+    public List<ResponseAIQuestionDTO> generateQuestions(String theme, String type, String difficulty) {
 
         String prompt = String.format("""
                     Generate 10 %s questions about the theme "%s"
                     with difficulty level "%s".
+                    the value type must be with these options: MULTIPLE_CHOICE or DISCURSIVE.
                     Return ONLY JSON in this structure:
                     [
                       {
@@ -44,12 +48,26 @@ public class AIQuestionService {
                 .call()
                 .content();
 
+        // Limpar possíveis marcadores extras
+        response = response.trim();
+        if (response.startsWith("json")) {
+            response = response.substring(4).trim();
+        }
+        if (response.startsWith("```json")) {
+            response = response.substring(7).trim();
+        }
+        if (response.endsWith("```")) {
+            response = response.substring(0, response.length() - 3).trim(); // remove ```
+        }
+
         try {
-            return mapper.readValue(response, new TypeReference<List<Map<String, Object>>>() {
+            return mapper.readValue(response, new TypeReference<List<ResponseAIQuestionDTO>>() {
             });
         } catch (IOException e) {
+            log.error("Failed parsing AI JSON: {}", response);
             throw new RuntimeException("Error parsing AI response", e);
         }
+
     }
 
     public List<ResponseAIQuestionDTO> generateQuestionsMock(String theme, String type, String difficulty) {
