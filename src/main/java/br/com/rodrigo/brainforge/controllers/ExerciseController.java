@@ -14,9 +14,8 @@ public class ExerciseController {
 
     @PostMapping
     public ResponseEntity<String> create(@RequestBody String entity) {
-        //TODO: process POST request
         
-        return entity;
+        return ResponseEntity.ok("Exercise created");
     }
     
 }
