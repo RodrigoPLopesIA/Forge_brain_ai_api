@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import br.com.rodrigo.brainforge.dtos.ResponseAIQuestionDTO;
+
 @Service
 public class AIQuestionService {
 
@@ -50,7 +52,7 @@ public class AIQuestionService {
         }
     }
 
-    public List<Map<String, Object>> generateQuestionsMock(String theme, String type, String difficulty) {
+    public List<ResponseAIQuestionDTO> generateQuestionsMock(String theme, String type, String difficulty) {
         String json = """
                 [
                     {
@@ -69,7 +71,7 @@ public class AIQuestionService {
                 """;
 
         try {
-            return new ObjectMapper().readValue(json, new TypeReference<List<Map<String, Object>>>() {
+            return new ObjectMapper().readValue(json, new TypeReference<List<ResponseAIQuestionDTO>>() {
             });
         } catch (Exception e) {
             throw new RuntimeException(e);
