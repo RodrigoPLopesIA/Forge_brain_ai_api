@@ -4,20 +4,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.rodrigo.brainforge.dtos.RequestExerciseDTO;
-import br.com.rodrigo.brainforge.dtos.ResponseAIQuestionDTO;
 import br.com.rodrigo.brainforge.dtos.ResponseExerciseDTO;
-import br.com.rodrigo.brainforge.enums.QuestionType;
-import br.com.rodrigo.brainforge.services.AIQuestionService;
 import br.com.rodrigo.brainforge.services.ExerciseService;
 
 import java.util.List;
-import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
 
 
@@ -39,6 +37,12 @@ public class ExerciseController {
     @GetMapping
     public ResponseEntity<List<ResponseExerciseDTO>> index() {
         List<ResponseExerciseDTO> response = exerciseService.index();
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ResponseExerciseDTO> show(@PathVariable UUID id) {
+        ResponseExerciseDTO response = exerciseService.findById(id);
         return ResponseEntity.ok(response);
     }
     
