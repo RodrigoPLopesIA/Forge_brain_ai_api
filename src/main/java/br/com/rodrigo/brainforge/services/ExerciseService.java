@@ -1,5 +1,8 @@
 package br.com.rodrigo.brainforge.services;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +22,8 @@ public class ExerciseService {
 
     @Autowired
     private ExerciseMapper exerciseMapper;
+
+
     public ResponseExerciseDTO create(RequestExerciseDTO exercise) {
 
         Exercise newExercise = exerciseMapper.toEntity(exercise);
@@ -27,4 +32,11 @@ public class ExerciseService {
 
         return exerciseMapper.toResponseDTO(newExercise);
     }
+
+    public List<ResponseExerciseDTO> index() {
+        List<Exercise> exercises = exerciseRepository.findAll();
+        return exercises.stream()
+                        .map(exercise -> exerciseMapper.toResponseDTO(exercise))
+                        .collect(Collectors.toList());
+    } 
 }
