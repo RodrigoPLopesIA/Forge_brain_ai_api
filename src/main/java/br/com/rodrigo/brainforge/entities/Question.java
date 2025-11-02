@@ -1,6 +1,7 @@
 package br.com.rodrigo.brainforge.entities;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.annotation.CreatedDate;
@@ -28,7 +29,7 @@ public class Question {
     private String title;
 
     @Column(columnDefinition = "JSONB")
-    private String options;
+    private List<String> options;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String correctAnswer; 

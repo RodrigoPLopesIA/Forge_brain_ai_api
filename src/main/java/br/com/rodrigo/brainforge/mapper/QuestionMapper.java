@@ -7,13 +7,14 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 import br.com.rodrigo.brainforge.dtos.ResponseAIQuestionDTO;
+import br.com.rodrigo.brainforge.dtos.ResponseExerciseDTO;
 import br.com.rodrigo.brainforge.entities.Question;
 
 @Mapper(componentModel = "spring")
 public interface QuestionMapper {
     
     @Mapping(target = "title", source = "statement")
-    @Mapping(target = "options", expression = "java(aiResponse.options() == null ? null : String.join(\"\\n\", aiResponse.options()))")
+    @Mapping(target = "options", source = "options")
     @Mapping(target = "correctAnswer", source = "correctAnswer")
     @Mapping(target = "type", source = "type")
     @Mapping(target = "id", ignore = true)
@@ -21,7 +22,9 @@ public interface QuestionMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     Question toEntity(ResponseAIQuestionDTO aiResponse);
-    
 
+
+    ResponseExerciseDTO toDTO(Question entity);
+    
     
 }
