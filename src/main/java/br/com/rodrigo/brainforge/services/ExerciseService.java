@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import br.com.rodrigo.brainforge.dtos.RequestExerciseDTO;
 import br.com.rodrigo.brainforge.dtos.ResponseExerciseDTO;
 import br.com.rodrigo.brainforge.entities.Exercise;
-import br.com.rodrigo.brainforge.enums.DifficultyEnum;
 import br.com.rodrigo.brainforge.mapper.ExerciseMapper;
 import br.com.rodrigo.brainforge.repositories.ExerciseRepository;
 
