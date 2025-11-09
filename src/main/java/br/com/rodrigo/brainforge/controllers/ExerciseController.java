@@ -9,6 +9,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import br.com.rodrigo.brainforge.dtos.RequestExerciseDTO;
 import br.com.rodrigo.brainforge.dtos.RequestExercisesAnswerDTO;
 import br.com.rodrigo.brainforge.dtos.ResponseExerciseDTO;
+import br.com.rodrigo.brainforge.dtos.ResponseExerciseResultDTO;
 import br.com.rodrigo.brainforge.entities.AnsweredQuestions;
 import br.com.rodrigo.brainforge.services.ExerciseService;
 
@@ -22,15 +23,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-
-
 @RequestMapping("/exercises")
 @RestController
 public class ExerciseController {
-    
+
     @Autowired
     private ExerciseService exerciseService;
-
 
     @PostMapping
     public ResponseEntity<ResponseExerciseDTO> create(@RequestBody RequestExerciseDTO exercise) {
@@ -53,11 +51,18 @@ public class ExerciseController {
         return ResponseEntity.ok(response);
     }
 
-
     @PostMapping("/{id}/answer")
-    public ResponseEntity<List<AnsweredQuestions>> seed(@PathVariable("id") UUID exerciseId, @RequestBody List<RequestExercisesAnswerDTO> answers) {
+    public ResponseEntity<List<AnsweredQuestions>> seed(@PathVariable("id") UUID exerciseId,
+            @RequestBody List<RequestExercisesAnswerDTO> answers) {
         System.out.println("Received answers for exercise " + exerciseId + ": " + answers);
         List<AnsweredQuestions> answeredQuestions = exerciseService.answerExercise(exerciseId, answers);
         return ResponseEntity.ok().body(answeredQuestions);
     }
+
+    @GetMapping("/{exerciseId}/result")
+    public ResponseEntity<ResponseExerciseResultDTO> getExerciseResult(@PathVariable UUID exerciseId) {
+        ResponseExerciseResultDTO result = exerciseService.getExerciseResult(exerciseId);
+        return ResponseEntity.ok(result);
+    }
+
 }

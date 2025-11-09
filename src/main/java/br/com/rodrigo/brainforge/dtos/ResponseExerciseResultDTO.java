@@ -10,7 +10,5 @@ public record ResponseExerciseResultDTO(
     double userScore,
     List<ResponseQuestionResultDTO> questions
 ) {
-
-    // getters e setters
 }
 

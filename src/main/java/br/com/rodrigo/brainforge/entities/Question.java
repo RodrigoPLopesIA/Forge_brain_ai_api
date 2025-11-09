@@ -41,6 +41,9 @@ public class Question {
     @Column(nullable =  false)
     private Double score;
 
+    @Column(nullable = false)
+    private String explanation;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "exercise_id", nullable = false)
     private Exercise exercise;

@@ -12,6 +12,8 @@ import br.com.rodrigo.brainforge.dtos.RequestExerciseDTO;
 import br.com.rodrigo.brainforge.dtos.RequestExercisesAnswerDTO;
 import br.com.rodrigo.brainforge.dtos.ResponseAIQuestionDTO;
 import br.com.rodrigo.brainforge.dtos.ResponseExerciseDTO;
+import br.com.rodrigo.brainforge.dtos.ResponseExerciseResultDTO;
+import br.com.rodrigo.brainforge.dtos.ResponseQuestionResultDTO;
 import br.com.rodrigo.brainforge.entities.AnsweredQuestions;
 import br.com.rodrigo.brainforge.entities.Exercise;
 import br.com.rodrigo.brainforge.entities.Question;
@@ -106,6 +108,45 @@ public class ExerciseService {
         }
         List<AnsweredQuestions> answeredList = answeredQuestionsRepository.findByQuestionExerciseId(exerciseId);
         return answeredList;
+    }
+
+    public ResponseExerciseResultDTO getExerciseResult(UUID exerciseId) {
+        Exercise exercise = exerciseRepository.findById(exerciseId)
+                .orElseThrow(() -> new RuntimeException("Exercise not found"));
+
+        List<AnsweredQuestions> answered = answeredQuestionsRepository.findByQuestionExerciseId(exerciseId);
+
+        double totalScore = exercise.getQuestions()
+                .stream()
+                .mapToDouble(Question::getScore)
+                .sum();
+
+        double userScore = answered.stream()
+                .mapToDouble(AnsweredQuestions::getScoreObtained)
+                .sum();
+
+        List<ResponseQuestionResultDTO> questionResults = answered.stream().map(a -> {
+            Question q = a.getQuestion();
+            ResponseQuestionResultDTO dto = new ResponseQuestionResultDTO(
+                    q.getId(),
+                    q.getTitle(),
+                    q.getOptions(),
+                    q.getCorrectAnswer(),
+                    a.getAnswer(),
+                    a.isCorrect(),
+                    q.getScore(),
+                    q.getExplanation());
+            return dto;
+        }).collect(Collectors.toList());
+
+        ResponseExerciseResultDTO resultDTO = new ResponseExerciseResultDTO();
+        resultDTO.setExerciseId(exercise.getId());
+        resultDTO.setTitle(exercise.getTitle());
+        resultDTO.setTotalScore(totalScore);
+        resultDTO.setUserScore(userScore);
+        resultDTO.setQuestions(questionResults);
+
+        return resultDTO;
     }
 
 }
