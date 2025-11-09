@@ -6,6 +6,6 @@ import java.util.UUID;
 
 import br.com.rodrigo.brainforge.enums.QuestionType;
 
-public record ResponseQuestionDTO(UUID id, String title, List<String> options, QuestionType type, Instant createdAt, Instant updatedAt) {
+public record ResponseQuestionDTO(UUID id, String title, List<String> options, QuestionType type, Double score, Instant createdAt, Instant updatedAt) {
     
 }

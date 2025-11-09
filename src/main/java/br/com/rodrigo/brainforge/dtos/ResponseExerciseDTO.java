@@ -12,6 +12,7 @@ public record ResponseExerciseDTO(
         String description,
         DifficultyEnum difficulty,
         List<ResponseQuestionDTO> questions,
+
         Instant createdAt,
         Instant updatedAt
 ) {}
