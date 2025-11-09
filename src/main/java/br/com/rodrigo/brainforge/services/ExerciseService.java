@@ -12,10 +12,12 @@ import br.com.rodrigo.brainforge.dtos.RequestExerciseDTO;
 import br.com.rodrigo.brainforge.dtos.RequestExercisesAnswerDTO;
 import br.com.rodrigo.brainforge.dtos.ResponseAIQuestionDTO;
 import br.com.rodrigo.brainforge.dtos.ResponseExerciseDTO;
+import br.com.rodrigo.brainforge.entities.AnsweredQuestions;
 import br.com.rodrigo.brainforge.entities.Exercise;
 import br.com.rodrigo.brainforge.entities.Question;
 import br.com.rodrigo.brainforge.mapper.ExerciseMapper;
 import br.com.rodrigo.brainforge.mapper.QuestionMapper;
+import br.com.rodrigo.brainforge.repositories.AnsweredQuestionsRepository;
 import br.com.rodrigo.brainforge.repositories.ExerciseRepository;
 
 @Service
@@ -33,12 +35,16 @@ public class ExerciseService {
     @Autowired
     private AIQuestionService aiQuestionService;
 
+    @Autowired
+    private AnsweredQuestionsRepository answeredQuestionsRepository;
+
     public ResponseExerciseDTO create(RequestExerciseDTO exercise) {
 
         Exercise newExercise = exerciseMapper.toEntity(exercise);
 
         List<ResponseAIQuestionDTO> aiQuestions = aiQuestionService.generateQuestions(
-                exercise.theme(), exercise.type(), exercise.difficulty(), exercise.numberOfQuestions(), exercise.description());
+                exercise.theme(), exercise.type(), exercise.difficulty(), exercise.numberOfQuestions(),
+                exercise.description());
 
         List<Question> questions = aiQuestions.stream()
                 .map(questionMap -> {
@@ -72,11 +78,11 @@ public class ExerciseService {
         Exercise exercise = exerciseRepository.findById(exerciseId)
                 .orElseThrow(() -> new RuntimeException("Exercise not found"));
 
-        if(exercise.getQuestions().isEmpty()) {
+        if (exercise.getQuestions().isEmpty()) {
             throw new RuntimeException("Exercise has no questions");
         }
 
-        if(answers.size() != exercise.getQuestions().size()) {
+        if (answers.size() != exercise.getQuestions().size()) {
             throw new RuntimeException("Number of answers does not match number of questions");
         }
 
@@ -85,10 +91,22 @@ public class ExerciseService {
 
         for (Question question : exercise.getQuestions()) {
             String userAnswer = answerMap.get(question.getId());
-            // Here you can implement the logic to check the answer and record the result
-            System.out.println("Question ID: " + question.getId() + ", User Answer: " + userAnswer);
+
+            boolean isCorrect = question.getCorrectAnswer().trim().equalsIgnoreCase(userAnswer.trim());
+            long score = isCorrect ? question.getScore() : 0;
+
+            AnsweredQuestions answered = new AnsweredQuestions();
+            answered.setQuestion(question);
+            answered.setCorrect(isCorrect);
+            answered.setScoreObtained(score);
+
+            answeredQuestionsRepository.save(answered);
+
+            System.out.println("Question ID: " + question.getId() +
+                    " | Answer: " + userAnswer +
+                    " | Correct: " + isCorrect +
+                    " | Score: " + score);
         }
     }
-
 
 }

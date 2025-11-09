@@ -38,6 +38,9 @@ public class Question {
     @Enumerated(EnumType.STRING)
     private QuestionType type;
 
+    @Column(nullable =  false)
+    private Long score;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "exercise_id", nullable = false)
     private Exercise exercise;
