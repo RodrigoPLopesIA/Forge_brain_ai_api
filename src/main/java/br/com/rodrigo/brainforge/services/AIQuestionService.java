@@ -25,25 +25,34 @@ public class AIQuestionService {
         this.chatClient = chatClientBuilder.build();
     }
 
-    public List<ResponseAIQuestionDTO> generateQuestions(String theme, String type, String difficulty, long numberOfQuestions, String description) {
+    public List<ResponseAIQuestionDTO> generateQuestions(String theme, String type, String difficulty,
+            long numberOfQuestions, String description) {
 
         String prompt = String.format("""
-                    THE QUESTIONS MUST BE IN PORTUGUESE.
-                    Generate %d %s questions about the theme "%s"
-                    with difficulty level "%s".
-                    the questions must be related to the following description: "%s".
-                    the value type must be EQUAL of these options: MULTIPLE_CHOICE OR DISCURSIVE.
-                    if value type is ANY, mix 50%% MULTIPLE_CHOICE and 50%% DISCURSIVE questions.
-                    Return ONLY JSON in this structure:
-                    [
-                      {
-                        "statement": "Question text here",
-                        "options": ["A", "B", "C", "D"],
-                        "correctAnswer": "A",
-                        "type": "%s"
-                      }
+                THE QUESTIONS MUST BE IN PORTUGUESE.
+                Generate %d %s questions about the theme "%s"
+                with difficulty level "%s".
+                The questions must be related to the following description: "%s".
+                The value type must be EQUAL to one of these options: MULTIPLE_CHOICE or DISCURSIVE.
+                If value type is ANY, mix 50%% MULTIPLE_CHOICE and 50%% DISCURSIVE questions.
+
+                Each question must have a "score" field so that the total sum of all scores equals 10.
+                For example:
+                  - If there are 10 questions, each question must have score = 1.
+                  - If there are 5 questions, each question must have score = 2.
+                  - If there are 4 questions, each question must have score = 2.5.
+
+                Return ONLY JSON in this structure:
+                [
+                  {
+                    "statement": "Question text here",
+                    "options": ["A", "B", "C", "D"],
+                    "correctAnswer": "A",
+                    "type": "%s",
+                    "score": 1
+                  }
                 ]
-                    """, numberOfQuestions, type, theme, difficulty, description, type);
+                """, numberOfQuestions, type, theme, difficulty, description, type);
 
         String response = chatClient
                 .prompt()

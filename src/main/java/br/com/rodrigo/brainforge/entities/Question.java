@@ -39,7 +39,7 @@ public class Question {
     private QuestionType type;
 
     @Column(nullable =  false)
-    private Long score;
+    private Double score;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "exercise_id", nullable = false)

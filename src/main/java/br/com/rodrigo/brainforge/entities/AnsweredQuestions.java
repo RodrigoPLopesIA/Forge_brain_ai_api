@@ -46,7 +46,7 @@ public class AnsweredQuestions {
     private boolean isCorrect;
 
     @Column(nullable = false)
-    private Long scoreObtained;
+    private Double scoreObtained;
 
     @CreatedDate
     @Column(nullable = false, updatable = false, name = "created_at")

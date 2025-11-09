@@ -93,7 +93,7 @@ public class ExerciseService {
             String userAnswer = answerMap.get(question.getId());
 
             boolean isCorrect = question.getCorrectAnswer().trim().equalsIgnoreCase(userAnswer.trim());
-            long score = isCorrect ? question.getScore() : 0;
+            Double score = isCorrect ? question.getScore() : 0;
 
             AnsweredQuestions answered = new AnsweredQuestions();
             answered.setQuestion(question);
