@@ -139,12 +139,7 @@ public class ExerciseService {
             return dto;
         }).collect(Collectors.toList());
 
-        ResponseExerciseResultDTO resultDTO = new ResponseExerciseResultDTO();
-        resultDTO.setExerciseId(exercise.getId());
-        resultDTO.setTitle(exercise.getTitle());
-        resultDTO.setTotalScore(totalScore);
-        resultDTO.setUserScore(userScore);
-        resultDTO.setQuestions(questionResults);
+        ResponseExerciseResultDTO resultDTO = new ResponseExerciseResultDTO(exercise.getId(), exercise.getTheme(), totalScore, userScore, questionResults);
 
         return resultDTO;
     }
