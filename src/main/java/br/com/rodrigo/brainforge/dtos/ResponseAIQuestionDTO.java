@@ -8,6 +8,7 @@ public record ResponseAIQuestionDTO(
         List<String> options,
         String correctAnswer,
         String type,
+        String explanation,
         Double score) {
 
 }

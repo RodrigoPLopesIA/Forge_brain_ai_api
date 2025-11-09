@@ -57,7 +57,8 @@ public class AIQuestionService {
                     "options": ["Option 1", "Option 2", "Option 3"],
                     "correctAnswer": "Option 2",
                     "type": "%s",
-                    "score": 1
+                    "score": 1,
+                    "explanation": "explanation of the question the correct answer"
                   }
                 ]
                 """, numberOfQuestions, type, theme, difficulty, description, type);
