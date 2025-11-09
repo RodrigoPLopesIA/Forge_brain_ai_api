@@ -74,7 +74,7 @@ public class ExerciseService {
         return exerciseMapper.toResponseDTO(exercise);
     }
 
-    public void answerExercise(UUID exerciseId, List<RequestExercisesAnswerDTO> answers) {
+    public List<AnsweredQuestions> answerExercise(UUID exerciseId, List<RequestExercisesAnswerDTO> answers) {
         Exercise exercise = exerciseRepository.findById(exerciseId)
                 .orElseThrow(() -> new RuntimeException("Exercise not found"));
 
@@ -97,16 +97,15 @@ public class ExerciseService {
 
             AnsweredQuestions answered = new AnsweredQuestions();
             answered.setQuestion(question);
+            answered.setAnswer(userAnswer);
             answered.setCorrect(isCorrect);
             answered.setScoreObtained(score);
 
             answeredQuestionsRepository.save(answered);
 
-            System.out.println("Question ID: " + question.getId() +
-                    " | Answer: " + userAnswer +
-                    " | Correct: " + isCorrect +
-                    " | Score: " + score);
         }
+        List<AnsweredQuestions> answeredList = answeredQuestionsRepository.findByQuestionExerciseId(exerciseId);
+        return answeredList;
     }
 
 }

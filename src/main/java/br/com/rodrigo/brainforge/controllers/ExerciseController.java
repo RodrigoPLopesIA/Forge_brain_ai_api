@@ -9,6 +9,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import br.com.rodrigo.brainforge.dtos.RequestExerciseDTO;
 import br.com.rodrigo.brainforge.dtos.RequestExercisesAnswerDTO;
 import br.com.rodrigo.brainforge.dtos.ResponseExerciseDTO;
+import br.com.rodrigo.brainforge.entities.AnsweredQuestions;
 import br.com.rodrigo.brainforge.services.ExerciseService;
 
 import java.util.List;
@@ -54,9 +55,9 @@ public class ExerciseController {
 
 
     @PostMapping("/{id}/answer")
-    public ResponseEntity<Void> seed(@PathVariable("id") UUID exerciseId, @RequestBody List<RequestExercisesAnswerDTO> answers) {
+    public ResponseEntity<List<AnsweredQuestions>> seed(@PathVariable("id") UUID exerciseId, @RequestBody List<RequestExercisesAnswerDTO> answers) {
         System.out.println("Received answers for exercise " + exerciseId + ": " + answers);
-        exerciseService.answerExercise(exerciseId, answers);
-        return ResponseEntity.ok().build();
+        List<AnsweredQuestions> answeredQuestions = exerciseService.answerExercise(exerciseId, answers);
+        return ResponseEntity.ok().body(answeredQuestions);
     }
 }
