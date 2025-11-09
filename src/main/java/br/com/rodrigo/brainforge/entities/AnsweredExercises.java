@@ -1,6 +1,7 @@
 package br.com.rodrigo.brainforge.entities;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.annotation.CreatedDate;
@@ -11,40 +12,38 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "answered_questions")
+@Table(name = "answered_exercises")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @EntityListeners(AuditingEntityListener.class)
-public class AnsweredQuestions {
+public class AnsweredExercises {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    // 🔗 Pergunta original
+    // 🔗 Ligação com o exercício original
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "question_id", nullable = false)
-    private Question question;
+    @JoinColumn(name = "exercise_id", nullable = false)
+    private Exercise exercise;
 
-    // 🔗 Tentativa de exercício a que essa resposta pertence
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "answered_exercise_id", nullable = false)
-    private AnsweredExercises answeredExercise;
-
-    @Column(nullable = false, columnDefinition = "TEXT")
-    private String answer;
-
+    // 🔢 Pontuação obtida pelo usuário
     @Column(nullable = false)
-    private boolean isCorrect;
+    private Double userScore;
 
+    // 🔢 Pontuação máxima (soma de todas as questões)
     @Column(nullable = false)
-    private Double scoreObtained;
+    private Double totalScore;
+
+    // 🔗 Todas as perguntas respondidas dessa tentativa
+    @OneToMany(mappedBy = "answeredExercise", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AnsweredQuestions> answeredQuestions;
 
     @CreatedDate
     @Column(nullable = false, updatable = false, name = "created_at")
-    private Instant answeredAt;
+    private Instant createdAt;
 
     @LastModifiedDate
     @Column(nullable = false, name = "updated_at")

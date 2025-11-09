@@ -12,6 +12,7 @@ import br.com.rodrigo.brainforge.dtos.RequestExerciseDTO;
 import br.com.rodrigo.brainforge.dtos.RequestExercisesAnswerDTO;
 import br.com.rodrigo.brainforge.dtos.ResponseAIQuestionDTO;
 import br.com.rodrigo.brainforge.dtos.ResponseExerciseDTO;
+import br.com.rodrigo.brainforge.dtos.ResponseExerciseIdDTO;
 import br.com.rodrigo.brainforge.dtos.ResponseExerciseResultDTO;
 import br.com.rodrigo.brainforge.dtos.ResponseQuestionResultDTO;
 import br.com.rodrigo.brainforge.entities.AnsweredQuestions;
@@ -76,7 +77,7 @@ public class ExerciseService {
         return exerciseMapper.toResponseDTO(exercise);
     }
 
-    public List<AnsweredQuestions> answerExercise(UUID exerciseId, List<RequestExercisesAnswerDTO> answers) {
+    public ResponseExerciseIdDTO answerExercise(UUID exerciseId, List<RequestExercisesAnswerDTO> answers) {
         Exercise exercise = exerciseRepository.findById(exerciseId)
                 .orElseThrow(() -> new RuntimeException("Exercise not found"));
 
@@ -106,8 +107,7 @@ public class ExerciseService {
             answeredQuestionsRepository.save(answered);
 
         }
-        List<AnsweredQuestions> answeredList = answeredQuestionsRepository.findByQuestionExerciseId(exerciseId);
-        return answeredList;
+        return new ResponseExerciseIdDTO(exerciseId);
     }
 
     public ResponseExerciseResultDTO getExerciseResult(UUID exerciseId) {
