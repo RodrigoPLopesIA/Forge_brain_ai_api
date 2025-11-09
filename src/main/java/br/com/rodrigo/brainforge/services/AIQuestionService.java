@@ -42,12 +42,20 @@ public class AIQuestionService {
                   - If there are 5 questions, each question must have score = 2.
                   - If there are 4 questions, each question must have score = 2.5.
 
+                For MULTIPLE_CHOICE questions:
+                  - "options" must be an array of possible answers (strings).
+                  - "correctAnswer" must be exactly one of the values present in "options".
+
+                For DISCURSIVE questions:
+                  - Do not include the "options" field.
+                  - "correctAnswer" must contain a short, clear, and correct written answer.
+
                 Return ONLY JSON in this structure:
                 [
                   {
                     "statement": "Question text here",
-                    "options": ["A", "B", "C", "D"],
-                    "correctAnswer": "A",
+                    "options": ["Option 1", "Option 2", "Option 3"],
+                    "correctAnswer": "Option 2",
                     "type": "%s",
                     "score": 1
                   }
