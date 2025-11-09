@@ -42,6 +42,9 @@ public class Question {
     @JoinColumn(name = "exercise_id", nullable = false)
     private Exercise exercise;
 
+    @OneToMany(mappedBy = "question")
+    private List<AnsweredQuestions> answeredQuestions;
+
     @CreatedDate
     @Column(nullable = false, updatable = false, name = "created_at")
     private Instant createdAt;

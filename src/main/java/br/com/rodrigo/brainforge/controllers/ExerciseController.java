@@ -7,6 +7,7 @@ import org.springframework.web.util.UriBuilderFactory;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import br.com.rodrigo.brainforge.dtos.RequestExerciseDTO;
+import br.com.rodrigo.brainforge.dtos.RequestExercisesAnswerDTO;
 import br.com.rodrigo.brainforge.dtos.ResponseExerciseDTO;
 import br.com.rodrigo.brainforge.services.ExerciseService;
 
@@ -50,6 +51,12 @@ public class ExerciseController {
         ResponseExerciseDTO response = exerciseService.findById(id);
         return ResponseEntity.ok(response);
     }
-    
-    
+
+
+    @PostMapping("/{id}/answer")
+    public ResponseEntity<Void> seed(@PathVariable("id") UUID exerciseId, @RequestBody List<RequestExercisesAnswerDTO> answers) {
+        System.out.println("Received answers for exercise " + exerciseId + ": " + answers);
+        exerciseService.answerExercise(exerciseId, answers);
+        return ResponseEntity.ok().build();
+    }
 }

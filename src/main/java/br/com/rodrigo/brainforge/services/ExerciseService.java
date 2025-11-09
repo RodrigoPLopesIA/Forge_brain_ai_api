@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import br.com.rodrigo.brainforge.dtos.RequestExerciseDTO;
+import br.com.rodrigo.brainforge.dtos.RequestExercisesAnswerDTO;
 import br.com.rodrigo.brainforge.dtos.ResponseAIQuestionDTO;
 import br.com.rodrigo.brainforge.dtos.ResponseExerciseDTO;
 import br.com.rodrigo.brainforge.entities.Exercise;
@@ -37,7 +38,7 @@ public class ExerciseService {
         Exercise newExercise = exerciseMapper.toEntity(exercise);
 
         List<ResponseAIQuestionDTO> aiQuestions = aiQuestionService.generateQuestions(
-                exercise.theme(), exercise.type(), exercise.difficulty());
+                exercise.theme(), exercise.type(), exercise.difficulty(), exercise.numberOfQuestions(), exercise.description());
 
         List<Question> questions = aiQuestions.stream()
                 .map(questionMap -> {
@@ -66,4 +67,28 @@ public class ExerciseService {
                 .orElseThrow(() -> new RuntimeException("Exercise not found"));
         return exerciseMapper.toResponseDTO(exercise);
     }
+
+    public void answerExercise(UUID exerciseId, List<RequestExercisesAnswerDTO> answers) {
+        Exercise exercise = exerciseRepository.findById(exerciseId)
+                .orElseThrow(() -> new RuntimeException("Exercise not found"));
+
+        if(exercise.getQuestions().isEmpty()) {
+            throw new RuntimeException("Exercise has no questions");
+        }
+
+        if(answers.size() != exercise.getQuestions().size()) {
+            throw new RuntimeException("Number of answers does not match number of questions");
+        }
+
+        Map<UUID, String> answerMap = answers.stream()
+                .collect(Collectors.toMap(RequestExercisesAnswerDTO::questionId, RequestExercisesAnswerDTO::value));
+
+        for (Question question : exercise.getQuestions()) {
+            String userAnswer = answerMap.get(question.getId());
+            // Here you can implement the logic to check the answer and record the result
+            System.out.println("Question ID: " + question.getId() + ", User Answer: " + userAnswer);
+        }
+    }
+
+
 }

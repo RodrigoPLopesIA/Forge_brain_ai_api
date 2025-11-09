@@ -25,12 +25,15 @@ public class AIQuestionService {
         this.chatClient = chatClientBuilder.build();
     }
 
-    public List<ResponseAIQuestionDTO> generateQuestions(String theme, String type, String difficulty) {
+    public List<ResponseAIQuestionDTO> generateQuestions(String theme, String type, String difficulty, long numberOfQuestions, String description) {
 
         String prompt = String.format("""
-                    Generate 10 %s questions about the theme "%s"
+                    THE QUESTIONS MUST BE IN PORTUGUESE.
+                    Generate %d %s questions about the theme "%s"
                     with difficulty level "%s".
-                    the value type must be with these options: MULTIPLE_CHOICE or DISCURSIVE.
+                    the questions must be related to the following description: "%s".
+                    the value type must be EQUAL of these options: MULTIPLE_CHOICE OR DISCURSIVE.
+                    if value type is ANY, mix 50%% MULTIPLE_CHOICE and 50%% DISCURSIVE questions.
                     Return ONLY JSON in this structure:
                     [
                       {
@@ -40,7 +43,7 @@ public class AIQuestionService {
                         "type": "%s"
                       }
                 ]
-                    """, type, theme, difficulty, type);
+                    """, numberOfQuestions, type, theme, difficulty, description, type);
 
         String response = chatClient
                 .prompt()
