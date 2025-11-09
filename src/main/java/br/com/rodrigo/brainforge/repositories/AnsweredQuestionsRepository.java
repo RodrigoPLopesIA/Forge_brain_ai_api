@@ -9,4 +9,6 @@ import br.com.rodrigo.brainforge.entities.AnsweredQuestions;
 
 public interface AnsweredQuestionsRepository extends JpaRepository<AnsweredQuestions, UUID> {
     List<AnsweredQuestions> findByQuestionExerciseId(UUID exerciseId);
+
+    List<AnsweredQuestions> findByAnsweredExerciseId(UUID answeredExerciseId);
 }

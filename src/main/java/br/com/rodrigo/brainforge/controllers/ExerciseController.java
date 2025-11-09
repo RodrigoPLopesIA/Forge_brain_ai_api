@@ -60,10 +60,18 @@ public class ExerciseController {
         return ResponseEntity.ok().body(exerciseIdDTO);
     }
 
-    @GetMapping("/{exerciseId}/result")
-    public ResponseEntity<ResponseExerciseResultDTO> getExerciseResult(@PathVariable UUID exerciseId) {
-        ResponseExerciseResultDTO result = exerciseService.getExerciseResult(exerciseId);
+    @GetMapping("/{exerciseId}/answers")
+    public ResponseEntity<List<ResponseExerciseResultDTO>> getAllResponsesByExerciseId(@PathVariable UUID exerciseId) {
+        List<ResponseExerciseResultDTO> result = exerciseService.getAllResponsesByExerciseId(exerciseId);
         return ResponseEntity.ok(result);
     }
+
+    @GetMapping("/{exerciseId}/answered/{answeredExerciseId}")
+    public ResponseEntity<ResponseExerciseResultDTO> getAnsweredExercise(@PathVariable UUID exerciseId, @PathVariable UUID answeredExerciseId) {
+        ResponseExerciseResultDTO result = exerciseService.getAnsweredExercise(exerciseId, answeredExerciseId);
+        return ResponseEntity.ok(result);
+    }
+
+    
 
 }
