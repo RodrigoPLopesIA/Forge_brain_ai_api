@@ -1,3 +1,5 @@
+package br.com.rodrigo.brainforge.services.AIResources;
+
 import java.util.List;
 
 import org.springframework.stereotype.Service;
