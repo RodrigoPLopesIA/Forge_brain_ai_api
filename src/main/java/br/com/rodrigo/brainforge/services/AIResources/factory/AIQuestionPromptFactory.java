@@ -9,29 +9,37 @@ public class AIQuestionPromptFactory {
 
         return String.format("""
                 THE QUESTIONS MUST BE IN PORTUGUESE.
+                Generate %d %s questions about the theme "%s"
+                with difficulty level "%s".
+                The questions must be related to the following description: "%s".
+                The value type must be EQUAL to one of these options: MULTIPLE_CHOICE or DISCURSIVE.
+                If value type is ANY, mix 50%% MULTIPLE_CHOICE and 50%% DISCURSIVE questions.
 
-                Generate %d %s questions about "%s".
+                Each question must have a "score" field so that the total sum of all scores equals 10.
+                For example:
+                  - If there are 10 questions, each question must have score = 1.
+                  - If there are 5 questions, each question must have score = 2.
+                  - If there are 4 questions, each question must have score = 2.5.
 
-                The difficulty level is: %s.
+                For MULTIPLE_CHOICE questions:
+                  - "options" must be an array of possible answers (strings).
+                  - "correctAnswer" must be exactly one of the values present in "options".
 
-                Description about the theme: %s.
+                For DISCURSIVE questions:
+                  - Do not include the "options" field.
+                  - "correctAnswer" must contain a short, clear, and correct written answer.
 
-                The return MUST be in JSON ONLY.
-
-                JSON format:
-                {
-                    "questions":[
-                        {
-                            "title": "",
-                            "options": ["", "", "", ""],
-                            "correctAnswer": "",
-                            "explanation": "",
-                            "score": number
-                        }
-                    ]
-                }
-
-                DO NOT RETURN ANY TEXT OUTSIDE THE JSON.
+                Return ONLY JSON in this structure:
+                [
+                  {
+                    "statement": "Question text here",
+                    "options": ["Option 1", "Option 2", "Option 3"],
+                    "correctAnswer": "Option 2",
+                    "type": "%s",
+                    "score": 1,
+                    "explanation": "explanation of the question the correct answer"
+                  }
+                ]
                 """,
                 num, type, theme, difficulty, desc);
     }

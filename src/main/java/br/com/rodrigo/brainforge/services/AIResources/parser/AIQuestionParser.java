@@ -20,7 +20,7 @@ public class AIQuestionParser {
         try {
             List<ResponseAIQuestionDTO> list =
                 mapper.readValue(json, new TypeReference<List<ResponseAIQuestionDTO>>(){});
-
+            
             validate(list);
             return list;
 
