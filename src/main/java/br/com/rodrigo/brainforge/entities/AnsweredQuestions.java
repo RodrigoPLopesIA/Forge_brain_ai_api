@@ -49,4 +49,7 @@ public class AnsweredQuestions {
     @LastModifiedDate
     @Column(nullable = false, name = "updated_at")
     private Instant updatedAt;
+
+
+ 
 }

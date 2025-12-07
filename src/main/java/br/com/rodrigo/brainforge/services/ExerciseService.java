@@ -30,229 +30,264 @@ import jakarta.transaction.Transactional;
 @Service
 public class ExerciseService {
 
-    @Autowired
-    private ExerciseRepository exerciseRepository;
+        @Autowired
+        private ExerciseRepository exerciseRepository;
 
-    @Autowired
-    private ExerciseMapper exerciseMapper;
+        @Autowired
+        private ExerciseMapper exerciseMapper;
 
-    @Autowired
-    private QuestionMapper questionMapper;
+        @Autowired
+        private QuestionMapper questionMapper;
 
-    @Autowired
-    private AIQuestionService aiQuestionService;
+        @Autowired
+        private AIQuestionService aiQuestionService;
 
-    @Autowired
-    private AnsweredQuestionsRepository answeredQuestionsRepository;
+        @Autowired
+        private AnsweredQuestionsRepository answeredQuestionsRepository;
 
-    @Autowired
-    private AnsweredExercisesRepository answeredExercisesRepository;
+        @Autowired
+        private AnsweredExercisesRepository answeredExercisesRepository;
 
-    public ResponseExerciseDTO create(RequestExerciseDTO exercise) {
+        @Autowired
+        private AnsweredExercisesService answeredExercisesService;
 
-        Exercise newExercise = exerciseMapper.toEntity(exercise);
+        public ResponseExerciseDTO create(RequestExerciseDTO exercise) {
 
-        List<ResponseAIQuestionDTO> aiQuestions = aiQuestionService.generateQuestions(
-                exercise.theme(), exercise.type(), exercise.difficulty(), exercise.numberOfQuestions(),
-                exercise.description());
+                Exercise newExercise = exerciseMapper.toEntity(exercise);
 
-        List<Question> questions = aiQuestions.stream()
-                .map(questionMap -> {
-                    Question question = questionMapper.toEntity(questionMap);
-                    question.setExercise(newExercise);
-                    return question;
-                })
-                .collect(Collectors.toList());
+                List<ResponseAIQuestionDTO> aiQuestions = aiQuestionService.generateQuestions(
+                                exercise.theme(), exercise.type(), exercise.difficulty(), exercise.numberOfQuestions(),
+                                exercise.description());
 
-        newExercise.setQuestions(questions);
+                List<Question> questions = aiQuestions.stream()
+                                .map(questionMap -> {
+                                        Question question = questionMapper.toEntity(questionMap);
+                                        question.setExercise(newExercise);
+                                        return question;
+                                })
+                                .collect(Collectors.toList());
 
-        Exercise saved = exerciseRepository.save(newExercise);
+                newExercise.setQuestions(questions);
 
-        return exerciseMapper.toResponseDTO(saved);
-    }
+                Exercise saved = exerciseRepository.save(newExercise);
 
-    public List<ResponseExerciseDTO> index() {
-        List<Exercise> exercises = exerciseRepository.findAll();
-        return exercises.stream()
-                .map(exercise -> exerciseMapper.toResponseDTO(exercise))
-                .collect(Collectors.toList());
-    }
-
-    public ResponseExerciseDTO findById(UUID exerciseId) {
-        Exercise exercise = exerciseRepository.findById(exerciseId)
-                .orElseThrow(() -> new RuntimeException("Exercise not found"));
-        return exerciseMapper.toResponseDTO(exercise);
-    }
-
-    @Transactional
-    public ResponseExerciseIdDTO answerExercise(UUID exerciseId, List<RequestExercisesAnswerDTO> answers) {
-        Exercise exercise = exerciseRepository.findById(exerciseId)
-                .orElseThrow(() -> new RuntimeException("Exercise not found"));
-
-        if (exercise.getQuestions().isEmpty()) {
-            throw new RuntimeException("Exercise has no questions");
+                return exerciseMapper.toResponseDTO(saved);
         }
 
-        if (answers.size() != exercise.getQuestions().size()) {
-            throw new RuntimeException("Number of answers does not match number of questions");
+        public List<ResponseExerciseDTO> index() {
+                List<Exercise> exercises = exerciseRepository.findAll();
+                return exercises.stream()
+                                .map(exercise -> exerciseMapper.toResponseDTO(exercise))
+                                .collect(Collectors.toList());
         }
 
-        Map<UUID, String> answerMap = answers.stream()
-                .collect(Collectors.toMap(RequestExercisesAnswerDTO::questionId, RequestExercisesAnswerDTO::value));
-
-        double totalScore = 0.0;
-        double userScore = 0.0;
-
-        // 🔹 Primeiro cria o registro do AnsweredExercise
-        AnsweredExercises answeredExercise = new AnsweredExercises();
-        answeredExercise.setExercise(exercise);
-        answeredExercise.setTotalScore(0.0);
-        answeredExercise.setUserScore(0.0);
-
-        answeredExercise = answeredExercisesRepository.save(answeredExercise);
-
-        List<AnsweredQuestions> answeredQuestionsList = new ArrayList<>();
-
-        for (Question question : exercise.getQuestions()) {
-            String userAnswer = answerMap.get(question.getId());
-
-            // Evita NullPointer caso a resposta não venha
-            if (userAnswer == null) {
-                throw new RuntimeException("Missing answer for question ID: " + question.getId());
-            }
-
-            boolean isCorrect = question.getCorrectAnswer().trim().equalsIgnoreCase(userAnswer.trim());
-            double score = isCorrect ? question.getScore() : 0.0;
-
-            totalScore += question.getScore();
-            userScore += score;
-
-            AnsweredQuestions answered = AnsweredQuestions.builder()
-                    .question(question)
-                    .answeredExercise(answeredExercise)
-                    .answer(userAnswer)
-                    .isCorrect(isCorrect)
-                    .scoreObtained(score)
-                    .build();
-
-            answeredQuestionsList.add(answered);
+        public ResponseExerciseDTO findById(UUID exerciseId) {
+                Exercise exercise = exerciseRepository.findById(exerciseId)
+                                .orElseThrow(() -> new RuntimeException("Exercise not found"));
+                return exerciseMapper.toResponseDTO(exercise);
         }
 
-        // 🔹 Associa as respostas à tentativa e salva tudo
-        answeredExercise.setAnsweredQuestions(answeredQuestionsList);
-        answeredExercise.setTotalScore(totalScore);
-        answeredExercise.setUserScore(userScore);
+        @Transactional
+        public ResponseExerciseIdDTO answerExercise(UUID exerciseId, List<RequestExercisesAnswerDTO> answers) {
+                Exercise exercise = loadExercise(exerciseId);
+                validateExercise(exercise, answers);
 
-        answeredExercisesRepository.save(answeredExercise);
-        answeredQuestionsRepository.saveAll(answeredQuestionsList);
+                Map<UUID, String> answerMap = toAnswerMap(answers);
 
-        return new ResponseExerciseIdDTO(exerciseId);
-    }
+                AnsweredExercises answeredExercise = createInitialAnsweredExercise(exercise);
 
-    public List<ResponseExerciseResultDTO> getAllResponsesByExerciseId(UUID exerciseId) {
-        Exercise exercise = exerciseRepository.findById(exerciseId)
-                .orElseThrow(() -> new RuntimeException("Exercise not found"));
+                List<AnsweredQuestions> answeredQuestions = evaluateAnswers(exercise, answeredExercise, answerMap);
 
-        // Busca todas as tentativas (respostas completas) do exercício
-        List<AnsweredExercises> answeredExercises = answeredExercisesRepository.findByExerciseId(exerciseId);
+                updateAnsweredExerciseScores(answeredExercise, answeredQuestions);
 
-        if (answeredExercises.isEmpty()) {
-            throw new RuntimeException("Nenhuma resposta encontrada para este exercício");
+                persistAttempt(answeredExercise, answeredQuestions);
+
+                return new ResponseExerciseIdDTO(exerciseId);
         }
 
-        List<ResponseExerciseResultDTO> results = answeredExercises.stream().map(answeredExercise -> {
-            // Pega todas as perguntas respondidas associadas a esta tentativa
-            List<AnsweredQuestions> answeredQuestions = answeredQuestionsRepository
-                    .findByAnsweredExerciseId(answeredExercise.getId());
-
-            double totalScore = exercise.getQuestions()
-                    .stream()
-                    .mapToDouble(Question::getScore)
-                    .sum();
-
-            double userScore = answeredQuestions.stream()
-                    .mapToDouble(AnsweredQuestions::getScoreObtained)
-                    .sum();
-
-            // Monta a lista de perguntas com respostas e explicações
-            List<ResponseQuestionResultDTO> questionResults = answeredQuestions.stream().map(a -> {
-                Question q = a.getQuestion();
-                return new ResponseQuestionResultDTO(
-                        q.getId(),
-                        q.getTitle(),
-                        q.getOptions(),
-                        q.getCorrectAnswer(),
-                        a.getAnswer(),
-                        a.isCorrect(),
-                        q.getScore(),
-                        q.getExplanation());
-            }).collect(Collectors.toList());
-
-            // Monta o resultado completo de uma tentativa
-            return new ResponseExerciseResultDTO(
-                    answeredExercise.getId(),
-                    exercise.getId(),
-                    exercise.getTheme(),
-                    totalScore,
-                    userScore,
-                    questionResults,
-                    answeredExercise.getCreatedAt());
-        }).collect(Collectors.toList());
-
-        return results;
-    }
-
-    public ResponseExerciseResultDTO getAnsweredExercise(UUID exerciseId, UUID answeredExerciseId) {
-        Exercise exercise = exerciseRepository.findById(exerciseId)
-                .orElseThrow(() -> new RuntimeException("Exercise not found"));
-
-        // Busca a tentativa específica do exercício
-        AnsweredExercises answeredExercise = answeredExercisesRepository
-                .findById(answeredExerciseId)
-                .orElseThrow(() -> new RuntimeException("Answered exercise not found"));
-
-        if (!answeredExercise.getExercise().getId().equals(exerciseId)) {
-            throw new RuntimeException("This answered exercise does not belong to the specified exercise");
+        private void persistAttempt(
+                        AnsweredExercises answeredExercise,
+                        List<AnsweredQuestions> answeredQuestions) {
+                answeredExercisesRepository.save(answeredExercise);
+                answeredQuestionsRepository.saveAll(answeredQuestions);
         }
 
-        // Busca as perguntas respondidas dessa tentativa
-        List<AnsweredQuestions> answeredQuestions = answeredQuestionsRepository
-                .findByAnsweredExerciseId(answeredExercise.getId());
+        private void updateAnsweredExerciseScores(
+                        AnsweredExercises answeredExercise,
+                        List<AnsweredQuestions> answeredQuestions) {
+                double totalScore = answeredQuestions.stream()
+                                .mapToDouble(a -> a.getQuestion().getScore())
+                                .sum();
 
-        double totalScore = exercise.getQuestions()
-                .stream()
-                .mapToDouble(Question::getScore)
-                .sum();
+                double userScore = answeredQuestions.stream()
+                                .mapToDouble(AnsweredQuestions::getScoreObtained)
+                                .sum();
 
-        double userScore = answeredQuestions.stream()
-                .mapToDouble(AnsweredQuestions::getScoreObtained)
-                .sum();
+                answeredExercise.setAnsweredQuestions(answeredQuestions);
+                answeredExercise.setTotalScore(totalScore);
+                answeredExercise.setUserScore(userScore);
+        }
 
-        // Monta a lista de perguntas respondidas
-        List<ResponseQuestionResultDTO> questionResults = answeredQuestions.stream()
-                .map(a -> {
-                    Question q = a.getQuestion();
-                    return new ResponseQuestionResultDTO(
-                            q.getId(),
-                            q.getTitle(),
-                            q.getOptions(),
-                            q.getCorrectAnswer(),
-                            a.getAnswer(),
-                            a.isCorrect(),
-                            q.getScore(),
-                            q.getExplanation());
-                })
-                .collect(Collectors.toList());
+        private boolean isCorrectAnswer(Question question, String userAnswer) {
+                return question.getCorrectAnswer().trim().equalsIgnoreCase(userAnswer.trim());
+        }
 
-        // Retorna o resultado completo de uma tentativa
-        return new ResponseExerciseResultDTO(
-                answeredExercise.getId(),
-                exercise.getId(),
-                exercise.getTheme(),
-                totalScore,
-                userScore,
-                questionResults,
-                answeredExercise.getCreatedAt());
-    }
+        private List<AnsweredQuestions> evaluateAnswers(
+                        Exercise exercise,
+                        AnsweredExercises answeredExercise,
+                        Map<UUID, String> answerMap) {
+                List<AnsweredQuestions> list = new ArrayList<>();
+
+                for (Question question : exercise.getQuestions()) {
+                        String userAnswer = answerMap.get(question.getId());
+
+                        if (userAnswer == null) {
+                                throw new RuntimeException("Missing answer for question ID: " + question.getId());
+                        }
+
+                        boolean isCorrect = isCorrectAnswer(question, userAnswer);
+                        double score = isCorrect ? question.getScore() : 0.0;
+
+                        AnsweredQuestions answered = AnsweredQuestions.builder()
+                                        .question(question)
+                                        .answeredExercise(answeredExercise)
+                                        .answer(userAnswer)
+                                        .isCorrect(isCorrect)
+                                        .scoreObtained(score)
+                                        .build();
+
+                        list.add(answered);
+                }
+
+                return list;
+        }
+
+        private AnsweredExercises createInitialAnsweredExercise(Exercise exercise) {
+                AnsweredExercises answeredExercise = new AnsweredExercises();
+                answeredExercise.setExercise(exercise);
+                answeredExercise.setTotalScore(0.0);
+                answeredExercise.setUserScore(0.0);
+                return answeredExercisesRepository.save(answeredExercise);
+        }
+
+        private Exercise loadExercise(UUID exerciseId) {
+                return exerciseRepository.findById(exerciseId)
+                                .orElseThrow(() -> new RuntimeException("Exercise not found"));
+        }
+
+        private void validateExercise(Exercise exercise, List<RequestExercisesAnswerDTO> answers) {
+                if (exercise.getQuestions().isEmpty()) {
+                        throw new RuntimeException("Exercise has no questions");
+                }
+
+                if (answers.size() != exercise.getQuestions().size()) {
+                        throw new RuntimeException("Number of answers does not match number of questions");
+                }
+        }
+
+        private Map<UUID, String> toAnswerMap(List<RequestExercisesAnswerDTO> answers) {
+                return answers.stream()
+                                .collect(Collectors.toMap(RequestExercisesAnswerDTO::questionId,
+                                                RequestExercisesAnswerDTO::value));
+        }
+
+        public List<ResponseExerciseResultDTO> getAllResponsesByExerciseId(UUID exerciseId) {
+                Exercise exercise = exerciseRepository.findById(exerciseId)
+                                .orElseThrow(() -> new RuntimeException("Exercise not found"));
+
+                // Busca todas as tentativas (respostas completas) do exercício
+                List<AnsweredExercises> answeredExercises = answeredExercisesService.findByExerciseId(exerciseId);
+
+                List<ResponseExerciseResultDTO> results = answeredExercises.stream().map(answeredExercise -> {
+                        // Pega todas as perguntas respondidas associadas a esta tentativa
+                        List<AnsweredQuestions> answeredQuestions = answeredQuestionsRepository
+                                        .findByAnsweredExerciseId(answeredExercise.getId());
+
+                        double totalScore = exercise.getTotalScore();
+
+                        double userScore = answeredQuestions.stream()
+                                        .mapToDouble(AnsweredQuestions::getScoreObtained)
+                                        .sum();
+
+                        // Monta a lista de perguntas com respostas e explicações
+                        List<ResponseQuestionResultDTO> questionResults = answeredQuestions.stream().map(a -> {
+                                Question q = a.getQuestion();
+                                return new ResponseQuestionResultDTO(
+                                                q.getId(),
+                                                q.getTitle(),
+                                                q.getOptions(),
+                                                q.getCorrectAnswer(),
+                                                a.getAnswer(),
+                                                a.isCorrect(),
+                                                q.getScore(),
+                                                q.getExplanation());
+                        }).collect(Collectors.toList());
+
+                        // Monta o resultado completo de uma tentativa
+                        return new ResponseExerciseResultDTO(
+                                        answeredExercise.getId(),
+                                        exercise.getId(),
+                                        exercise.getTheme(),
+                                        totalScore,
+                                        userScore,
+                                        questionResults,
+                                        answeredExercise.getCreatedAt());
+                }).collect(Collectors.toList());
+
+                return results;
+        }
+
+        public ResponseExerciseResultDTO getAnsweredExercise(UUID exerciseId, UUID answeredExerciseId) {
+                Exercise exercise = exerciseRepository.findById(exerciseId)
+                                .orElseThrow(() -> new RuntimeException("Exercise not found"));
+
+                // Busca a tentativa específica do exercício
+                AnsweredExercises answeredExercise = answeredExercisesRepository
+                                .findById(answeredExerciseId)
+                                .orElseThrow(() -> new RuntimeException("Answered exercise not found"));
+
+                if (!answeredExercise.getExercise().getId().equals(exerciseId)) {
+                        throw new RuntimeException("This answered exercise does not belong to the specified exercise");
+                }
+
+                // Busca as perguntas respondidas dessa tentativa
+                List<AnsweredQuestions> answeredQuestions = answeredQuestionsRepository
+                                .findByAnsweredExerciseId(answeredExercise.getId());
+
+                double totalScore = exercise.getQuestions()
+                                .stream()
+                                .mapToDouble(Question::getScore)
+                                .sum();
+
+                double userScore = answeredQuestions.stream()
+                                .mapToDouble(AnsweredQuestions::getScoreObtained)
+                                .sum();
+
+                // Monta a lista de perguntas respondidas
+                List<ResponseQuestionResultDTO> questionResults = answeredQuestions.stream()
+                                .map(a -> {
+                                        Question q = a.getQuestion();
+                                        return new ResponseQuestionResultDTO(
+                                                        q.getId(),
+                                                        q.getTitle(),
+                                                        q.getOptions(),
+                                                        q.getCorrectAnswer(),
+                                                        a.getAnswer(),
+                                                        a.isCorrect(),
+                                                        q.getScore(),
+                                                        q.getExplanation());
+                                })
+                                .collect(Collectors.toList());
+
+                // Retorna o resultado completo de uma tentativa
+                return new ResponseExerciseResultDTO(
+                                answeredExercise.getId(),
+                                exercise.getId(),
+                                exercise.getTheme(),
+                                totalScore,
+                                userScore,
+                                questionResults,
+                                answeredExercise.getCreatedAt());
+        }
 
 }

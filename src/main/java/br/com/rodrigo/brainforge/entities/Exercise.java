@@ -63,5 +63,12 @@ public class Exercise {
     @LastModifiedDate
     @Column(nullable = false, name = "updated_at")
     private Instant updatedAt;
+
+
+    public double getTotalScore() {
+        return questions.stream()
+                .mapToDouble(Question::getScore)
+                .sum();
+    }
     
 }
