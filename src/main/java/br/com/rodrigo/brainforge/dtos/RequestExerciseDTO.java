@@ -1,4 +1,7 @@
 package br.com.rodrigo.brainforge.dtos;
 
-public record RequestExerciseDTO(String theme, String description, String type, String difficulty, long numberOfQuestions) {
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
+public record RequestExerciseDTO(@NotBlank String theme, @NotBlank String description, @NotBlank String type, @NotBlank String difficulty, @NotNull Long numberOfQuestions) {
 }
