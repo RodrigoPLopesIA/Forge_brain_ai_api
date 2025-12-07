@@ -22,6 +22,7 @@ import br.com.rodrigo.brainforge.entities.AnsweredExercises;
 import br.com.rodrigo.brainforge.entities.AnsweredQuestions;
 import br.com.rodrigo.brainforge.entities.Exercise;
 import br.com.rodrigo.brainforge.entities.Question;
+import br.com.rodrigo.brainforge.exceptions.ResourceNotFoundException;
 import br.com.rodrigo.brainforge.mapper.ExerciseMapper;
 import br.com.rodrigo.brainforge.mapper.QuestionMapper;
 import br.com.rodrigo.brainforge.repositories.AnsweredExercisesRepository;
@@ -98,13 +99,15 @@ public class ExerciseService {
                 return new ResponseExerciseIdDTO(exerciseId);
         }
 
-        public List<ResponseExerciseResultDTO> getAllResponsesByExerciseId(UUID exerciseId) {
-                Exercise exercise = loadExercise(exerciseId);
-                List<AnsweredExercises> attempts = loadExerciseAttempts(exerciseId);
+        public Page<ResponseExerciseResultDTO> getAllResponsesByExerciseId(UUID exerciseId, Pageable pageable) {
 
-                return attempts.stream()
-                                .map(attempt -> mapToExerciseResultDTO(exercise, attempt))
-                                .collect(Collectors.toList());
+                Exercise exercise = exerciseRepository.findById(exerciseId)
+                                .orElseThrow(() -> new ResourceNotFoundException("Exercise not found"));
+
+                Page<AnsweredExercises> attempts = answeredExercisesRepository
+                                .findByExerciseId(exerciseId, pageable);
+
+                return attempts.map(attempt -> mapToExerciseResultDTO(exercise, attempt));
         }
 
         public ResponseExerciseResultDTO getAnsweredExercise(UUID exerciseId, UUID answeredExerciseId) {
@@ -158,6 +161,14 @@ public class ExerciseService {
                                 userScore,
                                 questionResults,
                                 answeredExercise.getCreatedAt());
+        }
+
+        @Transactional
+        public void delete(UUID id) {
+                Exercise exercise = exerciseRepository.findById(id)
+                                .orElseThrow(() -> new ResourceNotFoundException("Exercise not found"));
+
+                exerciseRepository.delete(exercise);
         }
 
         private void persistAttempt(
