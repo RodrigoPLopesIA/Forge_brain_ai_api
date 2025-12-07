@@ -25,6 +25,7 @@ import br.com.rodrigo.brainforge.mapper.QuestionMapper;
 import br.com.rodrigo.brainforge.repositories.AnsweredExercisesRepository;
 import br.com.rodrigo.brainforge.repositories.AnsweredQuestionsRepository;
 import br.com.rodrigo.brainforge.repositories.ExerciseRepository;
+import br.com.rodrigo.brainforge.services.AIResources.AIQuestionService;
 import jakarta.transaction.Transactional;
 
 @Service
