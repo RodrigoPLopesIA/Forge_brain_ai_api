@@ -7,6 +7,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import br.com.rodrigo.brainforge.dtos.RequestExerciseDTO;
@@ -52,34 +54,24 @@ public class ExerciseService {
         @Autowired
         private AnsweredExercisesService answeredExercisesService;
 
-        public ResponseExerciseDTO create(RequestExerciseDTO exercise) {
+        @Transactional
+        public ResponseExerciseDTO create(RequestExerciseDTO request) {
 
-                Exercise newExercise = exerciseMapper.toEntity(exercise);
+                Exercise exercise = buildExercise(request);
 
-                List<ResponseAIQuestionDTO> aiQuestions = aiQuestionService.generateQuestions(
-                                exercise.theme(), exercise.type(), exercise.difficulty(), exercise.numberOfQuestions(),
-                                exercise.description());
+                List<Question> questions = generateQuestionsForExercise(request, exercise);
 
-                List<Question> questions = aiQuestions.stream()
-                                .map(questionMap -> {
-                                        Question question = questionMapper.toEntity(questionMap);
-                                        question.setExercise(newExercise);
-                                        return question;
-                                })
-                                .collect(Collectors.toList());
+                exercise.setQuestions(questions);
 
-                newExercise.setQuestions(questions);
+                Exercise savedExercise = exerciseRepository.save(exercise);
 
-                Exercise saved = exerciseRepository.save(newExercise);
-
-                return exerciseMapper.toResponseDTO(saved);
+                return exerciseMapper.toResponseDTO(savedExercise);
         }
 
-        public List<ResponseExerciseDTO> index() {
-                List<Exercise> exercises = exerciseRepository.findAll();
-                return exercises.stream()
-                                .map(exercise -> exerciseMapper.toResponseDTO(exercise))
-                                .collect(Collectors.toList());
+        public Page<ResponseExerciseDTO> index(Pageable pageable) {
+                Page<Exercise> page = exerciseRepository.findAll(pageable);
+
+                return page.map(exerciseMapper::toResponseDTO);
         }
 
         public ResponseExerciseDTO findById(UUID exerciseId) {
@@ -168,8 +160,6 @@ public class ExerciseService {
                                 answeredExercise.getCreatedAt());
         }
 
-       
-       
         private void persistAttempt(
                         AnsweredExercises answeredExercise,
                         List<AnsweredQuestions> answeredQuestions) {
@@ -323,6 +313,30 @@ public class ExerciseService {
                                 userScore,
                                 questionResults,
                                 attempt.getCreatedAt());
+        }
+
+        private Exercise buildExercise(RequestExerciseDTO request) {
+                return exerciseMapper.toEntity(request);
+        }
+
+        private List<Question> generateQuestionsForExercise(RequestExerciseDTO request, Exercise exercise) {
+
+                List<ResponseAIQuestionDTO> aiQuestions = aiQuestionService.generateQuestions(
+                                request.theme(),
+                                request.type(),
+                                request.difficulty(),
+                                request.numberOfQuestions(),
+                                request.description());
+
+                return aiQuestions.stream()
+                                .map(questionDto -> mapQuestionToExercise(questionDto, exercise))
+                                .collect(Collectors.toList());
+        }
+
+        private Question mapQuestionToExercise(ResponseAIQuestionDTO questionDto, Exercise exercise) {
+                Question question = questionMapper.toEntity(questionDto);
+                question.setExercise(exercise);
+                return question;
         }
 
 }
