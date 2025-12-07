@@ -35,7 +35,7 @@ public class AIQuestionPromptFactory {
                     "statement": "Question text here",
                     "options": ["Option 1", "Option 2", "Option 3"],
                     "correctAnswer": "Option 2",
-                    "type": "%s",
+                    "type": "%%s",
                     "score": 1,
                     "explanation": "explanation of the question the correct answer"
                   }
