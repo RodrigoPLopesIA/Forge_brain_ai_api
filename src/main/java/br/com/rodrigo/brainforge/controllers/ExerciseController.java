@@ -18,6 +18,9 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -41,8 +44,8 @@ public class ExerciseController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ResponseExerciseDTO>> index() {
-        List<ResponseExerciseDTO> response = exerciseService.index();
+    public ResponseEntity<Page<ResponseExerciseDTO>> index(Pageable pageable) {
+        Page<ResponseExerciseDTO> response = exerciseService.index(pageable);
         return ResponseEntity.ok(response);
     }
 
