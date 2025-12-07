@@ -11,7 +11,6 @@ import br.com.rodrigo.brainforge.dtos.RequestExercisesAnswerDTO;
 import br.com.rodrigo.brainforge.dtos.ResponseExerciseDTO;
 import br.com.rodrigo.brainforge.dtos.ResponseExerciseIdDTO;
 import br.com.rodrigo.brainforge.dtos.ResponseExerciseResultDTO;
-import br.com.rodrigo.brainforge.entities.AnsweredQuestions;
 import br.com.rodrigo.brainforge.services.ExerciseService;
 
 import java.util.List;
