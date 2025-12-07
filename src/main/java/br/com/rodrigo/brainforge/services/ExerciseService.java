@@ -22,6 +22,7 @@ import br.com.rodrigo.brainforge.entities.AnsweredExercises;
 import br.com.rodrigo.brainforge.entities.AnsweredQuestions;
 import br.com.rodrigo.brainforge.entities.Exercise;
 import br.com.rodrigo.brainforge.entities.Question;
+import br.com.rodrigo.brainforge.exceptions.ExerciseMismatchException;
 import br.com.rodrigo.brainforge.exceptions.ResourceNotFoundException;
 import br.com.rodrigo.brainforge.mapper.ExerciseMapper;
 import br.com.rodrigo.brainforge.mapper.QuestionMapper;
@@ -77,7 +78,7 @@ public class ExerciseService {
 
         public ResponseExerciseDTO findById(UUID exerciseId) {
                 Exercise exercise = exerciseRepository.findById(exerciseId)
-                                .orElseThrow(() -> new RuntimeException("Exercise not found"));
+                                .orElseThrow(() -> new ResourceNotFoundException("Exercise not found"));
                 return exerciseMapper.toResponseDTO(exercise);
         }
 
@@ -112,15 +113,15 @@ public class ExerciseService {
 
         public ResponseExerciseResultDTO getAnsweredExercise(UUID exerciseId, UUID answeredExerciseId) {
                 Exercise exercise = exerciseRepository.findById(exerciseId)
-                                .orElseThrow(() -> new RuntimeException("Exercise not found"));
+                                .orElseThrow(() -> new ResourceNotFoundException("Exercise not found"));
 
                 // Busca a tentativa específica do exercício
                 AnsweredExercises answeredExercise = answeredExercisesRepository
                                 .findById(answeredExerciseId)
-                                .orElseThrow(() -> new RuntimeException("Answered exercise not found"));
+                                .orElseThrow(() -> new ResourceNotFoundException("Answered exercise not found"));
 
                 if (!answeredExercise.getExercise().getId().equals(exerciseId)) {
-                        throw new RuntimeException("This answered exercise does not belong to the specified exercise");
+                        throw new ExerciseMismatchException("This answered exercise does not belong to the specified exercise");
                 }
 
                 // Busca as perguntas respondidas dessa tentativa
@@ -208,7 +209,7 @@ public class ExerciseService {
                         String userAnswer = answerMap.get(question.getId());
 
                         if (userAnswer == null) {
-                                throw new RuntimeException("Missing answer for question ID: " + question.getId());
+                                throw new ExerciseMismatchException("Missing answer for question ID: " + question.getId());
                         }
 
                         boolean isCorrect = isCorrectAnswer(question, userAnswer);
@@ -238,7 +239,7 @@ public class ExerciseService {
 
         private Exercise loadExercise(UUID exerciseId) {
                 return exerciseRepository.findById(exerciseId)
-                                .orElseThrow(() -> new RuntimeException("Exercise not found"));
+                                .orElseThrow(() -> new ResourceNotFoundException("Exercise not found"));
         }
 
         private List<AnsweredExercises> loadExerciseAttempts(UUID exerciseId) {
@@ -265,11 +266,11 @@ public class ExerciseService {
 
         private void validateExercise(Exercise exercise, List<RequestExercisesAnswerDTO> answers) {
                 if (exercise.getQuestions().isEmpty()) {
-                        throw new RuntimeException("Exercise has no questions");
+                        throw new ExerciseMismatchException("Exercise has no questions");
                 }
 
                 if (answers.size() != exercise.getQuestions().size()) {
-                        throw new RuntimeException("Number of answers does not match number of questions");
+                        throw new ExerciseMismatchException("Number of answers does not match number of questions");
                 }
         }
 
