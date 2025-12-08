@@ -70,7 +70,6 @@ public class ExerciseController {
         return ResponseEntity.ok().body(exerciseIdDTO);
     }
 
-    // 🔥 (OPCIONAL MAS RECOMENDADO) — Paginação nas respostas
     @GetMapping("/{exerciseId}/answers")
     public ResponseEntity<Page<ResponseExerciseResultDTO>> getAllResponsesByExerciseId(
             @PathVariable UUID exerciseId,
