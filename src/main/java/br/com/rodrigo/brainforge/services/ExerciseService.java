@@ -29,7 +29,6 @@ import br.com.rodrigo.brainforge.mapper.QuestionMapper;
 import br.com.rodrigo.brainforge.repositories.AnsweredExercisesRepository;
 import br.com.rodrigo.brainforge.repositories.AnsweredQuestionsRepository;
 import br.com.rodrigo.brainforge.repositories.ExerciseRepository;
-import br.com.rodrigo.brainforge.services.AIResources.AIAnswerVerify;
 import br.com.rodrigo.brainforge.services.AIResources.AIQuestionService;
 import jakarta.transaction.Transactional;
 
@@ -47,9 +46,6 @@ public class ExerciseService {
 
         @Autowired
         private AIQuestionService aiQuestionService;
-
-        @Autowired
-        private AIAnswerVerify aiAnswerVerify;
 
         @Autowired
         private AnsweredQuestionsRepository answeredQuestionsRepository;
@@ -200,7 +196,7 @@ public class ExerciseService {
         }
 
         private boolean isCorrectAnswer(Question question, String userAnswer) {
-                return aiAnswerVerify.verifyAnswer(
+                return aiQuestionService.verifyAnswer(
                                 question.getTitle(),
                                 userAnswer,
                                 question.getCorrectAnswer());
